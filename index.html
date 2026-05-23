@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MicroLend LMS — Microfinance Loan Management System</title>
+<link rel="stylesheet" href="css/style.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js" defer></script>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════
+     SIDEBAR
+════════════════════════════════════════════ -->
+<div id="sidebar-backdrop" class="sidebar-backdrop"></div>
+<nav id="sidebar" class="sidebar" role="navigation" aria-label="Main navigation">
+  <div class="sidebar-header">
+    <div class="sidebar-brand">🏦 MicroLend LMS</div>
+    <div class="sidebar-sub">Microfinance Management System</div>
+    <div class="sidebar-user">
+      <div class="user-avatar">JM</div>
+      <div>
+        <div class="user-name">Jane Muthoni</div>
+        <div class="user-role">Branch Manager · Nairobi CBD</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="nav-section-label">Overview</div>
+  <div class="nav-link active" data-page="dashboard"><span class="nav-icon">📊</span> Dashboard</div>
+
+  <div class="nav-section-label">Borrowers</div>
+  <div class="nav-link" data-page="borrowers"><span class="nav-icon">👥</span> All Borrowers</div>
+  <div class="nav-link" data-page="new-borrower"><span class="nav-icon">➕</span> Register Borrower</div>
+
+  <div class="nav-section-label">Lending</div>
+  <div class="nav-link" data-page="loans"><span class="nav-icon">📄</span> Loan Portfolio</div>
+  <div class="nav-link" data-page="new-loan"><span class="nav-icon">💼</span> New Loan</div>
+  <div class="nav-link" data-page="applications"><span class="nav-icon">📋</span> Applications <span class="nav-badge" id="nav-app-count">4</span></div>
+
+  <div class="nav-section-label">Payments</div>
+  <div class="nav-link" data-page="repayments"><span class="nav-icon">💳</span> Repayments</div>
+  <div class="nav-link" data-page="collections"><span class="nav-icon">📲</span> Record Collection</div>
+
+  <div class="nav-section-label">Analytics</div>
+  <div class="nav-link" data-page="reports"><span class="nav-icon">📈</span> Reports & Analytics</div>
+</nav>
+
+<!-- ═══════════════════════════════════════════
+     TOPBAR
+════════════════════════════════════════════ -->
+<header class="topbar" role="banner">
+  <button id="menu-toggle" class="topbar-icon-btn" style="display:block;" aria-label="Open menu">☰</button>
+  <div class="topbar-logo">
+    <div>
+      MicroLend LMS
+      <span>Microfinance Loan Management</span>
+    </div>
+  </div>
+  <button class="topbar-icon-btn badge-dot" aria-label="Notifications">🔔</button>
+</header>
+
+<!-- ═══════════════════════════════════════════
+     MAIN CONTENT
+════════════════════════════════════════════ -->
+<main class="main" id="main-content">
+
+  <!-- ── DASHBOARD ── -->
+  <div id="page-dashboard" class="page active">
+    <div class="page-header">
+      <h1 id="page-title">Dashboard</h1>
+      <p>Welcome back, Jane · <span id="dash-date"></span></p>
+    </div>
+
+    <div class="metrics-grid">
+      <div class="metric-card">
+        <div class="metric-icon ic-blue">💼</div>
+        <div class="metric-label">Portfolio (KES)</div>
+        <div class="metric-value" id="stat-portfolio">—</div>
+        <div class="metric-sub metric-up">↑ +12% this month</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-icon ic-green">✅</div>
+        <div class="metric-label">Active Loans</div>
+        <div class="metric-value" id="stat-active">—</div>
+        <div class="metric-sub metric-up">↑ +8 this week</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-icon ic-red">⚠️</div>
+        <div class="metric-label">PAR 30</div>
+        <div class="metric-value" id="stat-par">—</div>
+        <div class="metric-sub metric-down">↑ Needs attention</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-icon ic-amber">👤</div>
+        <div class="metric-label">Total Borrowers</div>
+        <div class="metric-value" id="stat-borrowers">—</div>
+        <div class="metric-sub metric-up">↑ 42 new this month</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">Monthly Disbursements vs Collections (KES M)</div>
+        <div style="display:flex;gap:12px;font-size:0.72rem;">
+          <span><span style="display:inline-block;width:10px;height:10px;background:#0D5EAF;border-radius:2px;margin-right:4px;"></span>Disbursed</span>
+          <span><span style="display:inline-block;width:10px;height:10px;background:#1a7a3c;border-radius:2px;margin-right:4px;"></span>Collected</span>
+        </div>
+      </div>
+      <div class="card-body" style="padding-bottom:0;">
+        <div class="chart-container" style="height:200px;">
+          <canvas id="disbChart" role="img" aria-label="Monthly disbursements and collections bar chart">Bar chart showing monthly loan disbursements and collections from January to August.</canvas>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Recent Repayments</div>
+          <button class="btn btn-ghost btn-sm" onclick="nav('repayments')">View all</button>
+        </div>
+        <div class="card-body" id="recent-repayments">Loading…</div>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Pending Applications</div>
+          <button class="btn btn-ghost btn-sm" onclick="nav('applications')">Review</button>
+        </div>
+        <div class="card-body" id="pending-apps">Loading…</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── BORROWERS ── -->
+  <div id="page-borrowers" class="page">
+    <div class="page-header flex-between">
+      <div><h1>Borrowers</h1><p>All registered borrowers</p></div>
+      <button class="btn btn-primary" onclick="nav('new-borrower')">+ Register</button>
+    </div>
+    <div class="filter-bar">
+      <div class="search-wrap">
+        <span class="search-icon">🔍</span>
+        <input type="search" id="borrower-search" class="form-control" placeholder="Search name, ID, phone…" oninput="filterBorrowers()">
+      </div>
+      <select id="borrower-filter-status" class="form-control" style="width:140px;" onchange="filterBorrowers()">
+        <option value="">All statuses</option>
+        <option value="active">Active</option>
+        <option value="overdue">Overdue</option>
+        <option value="closed">Closed</option>
+      </select>
+    </div>
+    <div class="card" style="margin-bottom:0;">
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Borrower</th><th>Phone</th><th>Occupation</th><th>Loans</th><th>Credit Score</th><th>Status</th><th></th></tr>
+          </thead>
+          <tbody id="borrowers-body"><tr><td colspan="7" style="text-align:center;padding:20px;" class="text-muted">Loading…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── BORROWER DETAIL ── -->
+  <div id="page-borrower-detail" class="page"></div>
+
+  <!-- ── NEW BORROWER ── -->
+  <div id="page-new-borrower" class="page">
+    <div class="page-header">
+      <h1>Register New Borrower</h1>
+      <p>Complete all required fields marked with *</p>
+    </div>
+    <div id="form-alert" class="alert" style="display:none;"></div>
+    <div class="card">
+      <div class="card-header"><div class="card-title">Personal Information</div></div>
+      <div class="card-body">
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Full Name <span class="req">*</span></label>
+            <input id="nb-name" class="form-control" placeholder="e.g. Grace Wanjiru">
+          </div>
+          <div class="form-group">
+            <label class="form-label">National ID No. <span class="req">*</span></label>
+            <input id="nb-id" class="form-control" placeholder="e.g. 23118892">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Phone Number <span class="req">*</span></label>
+            <input id="nb-phone" class="form-control" placeholder="e.g. 0712345678">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Email Address</label>
+            <input id="nb-email" class="form-control" type="email" placeholder="e.g. grace@email.com">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Date of Birth</label>
+            <input id="nb-dob" class="form-control" type="date">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Gender</label>
+            <select id="nb-gender" class="form-control">
+              <option value="">Select gender</option>
+              <option>Female</option><option>Male</option><option>Other</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Residential Address</label>
+          <input id="nb-address" class="form-control" placeholder="e.g. Westlands, Nairobi">
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><div class="card-title">Employment & Income</div></div>
+      <div class="card-body">
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Occupation <span class="req">*</span></label>
+            <input id="nb-occupation" class="form-control" placeholder="e.g. Retail Trader">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Monthly Income (KES) <span class="req">*</span></label>
+            <input id="nb-income" class="form-control" type="number" placeholder="e.g. 35000">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><div class="card-title">Guarantor Information</div></div>
+      <div class="card-body">
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Guarantor Full Name</label>
+            <input id="nb-guarantor" class="form-control" placeholder="Guarantor's name">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Guarantor Phone</label>
+            <input id="nb-guarantor-phone" class="form-control" placeholder="e.g. 0722000111">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:10px;justify-content:flex-end;margin-bottom:24px;">
+      <button class="btn btn-ghost" onclick="nav('borrowers')">Cancel</button>
+      <button class="btn btn-primary" onclick="submitNewBorrower()">✓ Register Borrower</button>
+    </div>
+  </div>
+
+  <!-- ── LOANS ── -->
+  <div id="page-loans" class="page">
+    <div class="page-header flex-between">
+      <div><h1>Loan Portfolio</h1><p>All individual loans</p></div>
+      <button class="btn btn-primary" onclick="nav('new-loan')">+ New Loan</button>
+    </div>
+    <div class="tabs">
+      <div class="tab active" onclick="setLoanTab('all',this)">All</div>
+      <div class="tab" onclick="setLoanTab('active',this)">Active</div>
+      <div class="tab" onclick="setLoanTab('overdue',this)">Overdue</div>
+      <div class="tab" onclick="setLoanTab('closed',this)">Closed</div>
+    </div>
+    <div class="filter-bar">
+      <div class="search-wrap" style="flex:1;">
+        <span class="search-icon">🔍</span>
+        <input type="search" id="loan-search" class="form-control" placeholder="Search by loan ID, borrower name, product…" oninput="filterLoans()">
+      </div>
+    </div>
+    <div class="card" style="margin-bottom:0;">
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Loan ID</th><th>Borrower</th><th>Product</th><th>Principal</th><th>Balance</th><th style="min-width:120px;">Repaid</th><th>Next Due</th><th>Status</th></tr>
+          </thead>
+          <tbody id="loans-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── LOAN DETAIL ── -->
+  <div id="page-loan-detail" class="page"></div>
+
+  <!-- ── NEW LOAN ── -->
+  <div id="page-new-loan" class="page">
+    <div class="page-header">
+      <h1>Create New Loan</h1>
+      <p>Individual loan origination & disbursement</p>
+    </div>
+    <div id="form-alert" class="alert" style="display:none;"></div>
+
+    <div class="card">
+      <div class="card-header"><div class="card-title">Borrower</div></div>
+      <div class="card-body">
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Borrower ID <span class="req">*</span></label>
+            <input id="nl-borrower" class="form-control" placeholder="e.g. BRW001" oninput="lookupBorrowerForLoan()">
+            <div class="form-hint">Enter Borrower ID or search below</div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Borrower Name</label>
+            <div id="nl-borrower-name" style="padding:10px 12px;background:var(--gray-50);border-radius:var(--radius-sm);border:1.5px solid var(--gray-200);font-size:0.85rem;color:var(--gray-600);">Auto-filled on ID lookup</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><div class="card-title">Loan Details</div></div>
+      <div class="card-body">
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Loan Product <span class="req">*</span></label>
+            <select id="nl-product" class="form-control">
+              <option value="">Select product</option>
+              <option>Business Loan</option>
+              <option>Salary Advance</option>
+              <option>Agricultural Loan</option>
+              <option>Emergency Loan</option>
+              <option>Asset Finance</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Principal Amount (KES) <span class="req">*</span></label>
+            <input id="nl-amount" class="form-control" type="number" placeholder="e.g. 50000" oninput="updateLoanCalc()">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Interest Rate (% p.a.) <span class="req">*</span></label>
+            <input id="nl-rate" class="form-control" type="number" step="0.5" value="18" oninput="updateLoanCalc()">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Tenure (months) <span class="req">*</span></label>
+            <input id="nl-tenure" class="form-control" type="number" value="12" min="1" max="60" oninput="updateLoanCalc()">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Disbursement Date</label>
+            <input id="nl-disburse-date" class="form-control" type="date" oninput="updateLoanCalc()">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Collateral</label>
+            <input id="nl-collateral" class="form-control" placeholder="e.g. Title deed, Business assets">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Purpose of Loan <span class="req">*</span></label>
+          <textarea id="nl-purpose" class="form-control" rows="2" placeholder="Describe what the loan will be used for…"></textarea>
+        </div>
+
+        <div class="card" style="background:var(--primary-light);border-color:#b5d4f4;margin-top:4px;">
+          <div class="card-body" style="padding:14px;">
+            <div style="font-size:0.8rem;font-weight:700;color:var(--primary);margin-bottom:4px;">Loan Calculator</div>
+            <div style="font-size:1.1rem;font-weight:700;color:var(--primary);" id="nl-emi-display">Enter details above</div>
+            <div class="text-small text-muted mt-8" id="nl-total-display"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:10px;justify-content:flex-end;margin-bottom:24px;">
+      <button class="btn btn-ghost" onclick="nav('loans')">Cancel</button>
+      <button class="btn btn-primary" onclick="submitNewLoan()">✓ Disburse Loan</button>
+    </div>
+  </div>
+
+  <!-- ── APPLICATIONS ── -->
+  <div id="page-applications" class="page">
+    <div class="page-header flex-between">
+      <div><h1>Loan Applications</h1><p>Review and approve applications</p></div>
+      <button class="btn btn-primary" onclick="openModal('modal-new-app')">+ New Application</button>
+    </div>
+    <div class="metrics-grid" style="grid-template-columns:repeat(3,1fr);">
+      <div class="metric-card">
+        <div class="metric-label">⏳ Pending Review</div>
+        <div class="metric-value" id="app-pending-count" style="color:var(--warning);">—</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">✅ Approved</div>
+        <div class="metric-value" id="app-approved-count" style="color:var(--success);">—</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">❌ Rejected</div>
+        <div class="metric-value" id="app-rejected-count" style="color:var(--danger);">—</div>
+      </div>
+    </div>
+    <div class="card" style="margin-bottom:0;">
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Applicant</th><th>Product</th><th>Amount</th><th>Credit Score</th><th>Purpose</th><th>Applied</th><th>Status</th><th>Action</th></tr>
+          </thead>
+          <tbody id="apps-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── REPAYMENTS ── -->
+  <div id="page-repayments" class="page">
+    <div class="page-header flex-between">
+      <div><h1>Repayments</h1><p>All loan repayment records</p></div>
+      <button class="btn btn-primary" onclick="nav('collections')">+ Record Payment</button>
+    </div>
+    <div class="metrics-grid" style="grid-template-columns:repeat(3,1fr);">
+      <div class="metric-card">
+        <div class="metric-label">✅ Collected Today</div>
+        <div class="metric-value metric-up" id="rpy-collected">—</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">📅 Due Today</div>
+        <div class="metric-value" id="rpy-due">—</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">🚨 Overdue</div>
+        <div class="metric-value metric-down" id="rpy-overdue-amt">—</div>
+      </div>
+    </div>
+    <div class="tabs">
+      <div class="tab active" onclick="setRpyTab('all',this)">All</div>
+      <div class="tab" onclick="setRpyTab('paid',this)">Paid</div>
+      <div class="tab" onclick="setRpyTab('pending',this)">Pending</div>
+      <div class="tab" onclick="setRpyTab('overdue',this)">Overdue</div>
+    </div>
+    <div class="card" style="margin-bottom:0;">
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Borrower</th><th>Loan ID</th><th>Expected</th><th>Paid</th><th>Date</th><th>Channel</th><th>Reference</th><th>Status</th></tr>
+          </thead>
+          <tbody id="rpy-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── COLLECTIONS ── -->
+  <div id="page-collections" class="page">
+    <div class="page-header">
+      <h1>Record Collection</h1>
+      <p>Record M-Pesa, cash, or bank repayments</p>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><div class="card-title">📲 M-Pesa Paybill: <strong>MICROLEND01</strong></div></div>
+      <div class="card-body">
+        <div class="alert alert-info" style="margin-bottom:0;">
+          Borrowers can pay via M-Pesa Paybill <strong>MICROLEND01</strong> with their Loan ID as the account number. Payments are auto-reconciled within 5 minutes.
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><div class="card-title">Manual Payment Entry</div></div>
+      <div class="card-body">
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Loan ID <span class="req">*</span></label>
+            <div style="display:flex;gap:8px;">
+              <input id="col-loan-id" class="form-control" placeholder="e.g. LN2041" style="text-transform:uppercase;">
+              <button class="btn btn-outline" onclick="lookupLoan()">Lookup</button>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Payment Date <span class="req">*</span></label>
+            <input id="col-date" class="form-control" type="date">
+          </div>
+        </div>
+
+        <div id="col-loan-info"></div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Amount Paid (KES) <span class="req">*</span></label>
+            <input id="col-amount" class="form-control" type="number" placeholder="0">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Payment Channel <span class="req">*</span></label>
+            <select id="col-channel" class="form-control">
+              <option>M-Pesa</option>
+              <option>Cash</option>
+              <option>Bank Transfer</option>
+              <option>Cheque</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">M-Pesa / Receipt Reference</label>
+          <input id="col-ref" class="form-control" placeholder="e.g. QHJ4BXKL3T or RCPT-4421">
+        </div>
+
+        <div id="col-success"></div>
+        <button class="btn btn-primary btn-block" onclick="recordPayment()">✓ Record Payment</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── REPORTS ── -->
+  <div id="page-reports" class="page">
+    <div class="page-header flex-between">
+      <div><h1>Reports & Analytics</h1><p>Portfolio performance and compliance</p></div>
+      <button class="btn btn-outline">⬇ Export PDF</button>
+    </div>
+
+    <div class="metrics-grid">
+      <div class="metric-card">
+        <div class="metric-label">Total Portfolio (KES)</div>
+        <div class="metric-value" id="rpt-portfolio">—</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">PAR 30</div>
+        <div class="metric-value metric-down" id="rpt-par">—</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">Overdue Loans</div>
+        <div class="metric-value metric-down" id="rpt-overdue">—</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">Total Borrowers</div>
+        <div class="metric-value" id="rpt-borrowers">—</div>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+      <div class="card">
+        <div class="card-header"><div class="card-title">PAR 30 Trend (%)</div></div>
+        <div class="card-body" style="padding-bottom:0;">
+          <div class="chart-container" style="height:180px;">
+            <canvas id="parChart" role="img" aria-label="PAR 30 trend line chart over 6 months">Line chart showing PAR 30 portfolio at risk trend over 6 months.</canvas>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><div class="card-title">Portfolio by Product</div></div>
+        <div class="card-body" style="padding-bottom:0;">
+          <div class="chart-container" style="height:180px;">
+            <canvas id="productChart" role="img" aria-label="Portfolio distribution by loan product donut chart">Donut chart showing portfolio breakdown by loan product type.</canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">Repayment Rate by Product</div>
+      </div>
+      <div class="card-body">
+        ${[['Business Loan',94],['Salary Advance',98],['Agricultural Loan',88],['Emergency Loan',81]].map(([name,pct])=>`
+          <div style="margin-bottom:12px;">
+            <div class="flex-between text-small" style="margin-bottom:5px;">
+              <span>${name}</span><span style="font-weight:700;">${pct}%</span>
+            </div>
+            <div class="progress"><div class="progress-bar ${pct>=90?'success':pct>=80?'warning':'danger'}" style="width:${pct}%"></div></div>
+          </div>`).join('')}
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">Monthly Performance Summary</div>
+        <button class="btn btn-ghost btn-sm">⬇ Export CSV</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Month</th><th>Disbursed (KES)</th><th>Collected (KES)</th><th>New Borrowers</th><th>PAR 30</th><th>Collection Rate</th></tr></thead>
+          <tbody>
+            <tr><td>January 2025</td><td>3,200,000</td><td>2,980,000</td><td>38</td><td>2.4%</td><td><span class="badge badge-active">93%</span></td></tr>
+            <tr><td>February 2025</td><td>4,100,000</td><td>3,850,000</td><td>44</td><td>2.1%</td><td><span class="badge badge-active">94%</span></td></tr>
+            <tr><td>March 2025</td><td>3,800,000</td><td>3,650,000</td><td>41</td><td>2.8%</td><td><span class="badge badge-active">96%</span></td></tr>
+            <tr><td>April 2025</td><td>5,200,000</td><td>4,900,000</td><td>62</td><td>3.1%</td><td><span class="badge badge-active">94%</span></td></tr>
+            <tr><td>May 2025</td><td>4,800,000</td><td>4,550,000</td><td>55</td><td>3.2%</td><td><span class="badge badge-pending">95%</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+</main><!-- /main -->
+
+<!-- ═══════════════════════════════════════════
+     MODALS
+════════════════════════════════════════════ -->
+
+<!-- New Application Modal -->
+<div id="modal-new-app" class="modal-backdrop" onclick="if(event.target===this)closeModal('modal-new-app')">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">New Loan Application</div>
+      <button class="modal-close" onclick="closeModal('modal-new-app')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Full Name <span class="req">*</span></label>
+          <input id="na-name" class="form-control" placeholder="Applicant full name">
+        </div>
+        <div class="form-group">
+          <label class="form-label">National ID <span class="req">*</span></label>
+          <input id="na-id" class="form-control" placeholder="ID number">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Phone <span class="req">*</span></label>
+          <input id="na-phone" class="form-control" placeholder="0712345678">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Occupation</label>
+          <input id="na-occupation" class="form-control" placeholder="e.g. Trader">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Loan Product <span class="req">*</span></label>
+          <select id="na-product" class="form-control">
+            <option value="">Select…</option>
+            <option>Business Loan</option><option>Salary Advance</option>
+            <option>Agricultural Loan</option><option>Emergency Loan</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Amount (KES) <span class="req">*</span></label>
+          <input id="na-amount" class="form-control" type="number" placeholder="e.g. 50000">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Monthly Income (KES) <span class="req">*</span></label>
+          <input id="na-income" class="form-control" type="number" placeholder="e.g. 35000">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Purpose <span class="req">*</span></label>
+          <input id="na-purpose" class="form-control" placeholder="Loan purpose">
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-new-app')">Cancel</button>
+      <button class="btn btn-primary" onclick="submitNewApplication()">Submit Application</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     SCRIPTS
+════════════════════════════════════════════ -->
+<script src="js/data.js"></script>
+<script src="js/app.js"></script>
+<script>
+  // Tab helpers (defined inline to avoid scope issues)
+  function setLoanTab(filter, el) {
+    document.querySelectorAll('#page-loans .tab').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+    renderLoans(filter);
+  }
+  function setRpyTab(filter, el) {
+    document.querySelectorAll('#page-repayments .tab').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+    renderRepayments(filter);
+  }
+  function lookupBorrowerForLoan() {
+    const id = document.getElementById('nl-borrower').value.trim().toUpperCase();
+    const b = getBorrower(id);
+    document.getElementById('nl-borrower-name').textContent = b ? b.name + ' (' + b.id + ') — Score: ' + b.creditScore : (id.length > 2 ? 'Borrower not found' : 'Auto-filled on lookup');
+    document.getElementById('nl-borrower-name').style.color = b ? 'var(--success)' : '';
+  }
+  // Set today's date in dashboard
+  document.getElementById('dash-date').textContent = new Date().toLocaleDateString('en-KE',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  // Set default disburse date
+  document.addEventListener('DOMContentLoaded', () => {
+    const d = document.getElementById('nl-disburse-date');
+    if (d) d.value = new Date().toISOString().slice(0,10);
+  });
+</script>
+</body>
+</html>
